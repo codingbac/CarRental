@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { assets, dummyCarData } from '../assets/assets'
+import { assets } from '../assets/assets'
 import Loader from '../components/Loader'
 import { useAppContext } from '../context/AppContext'
 import toast from 'react-hot-toast'
@@ -8,30 +8,49 @@ import toast from 'react-hot-toast'
 const CarDetails = () => {
 
   const {id} = useParams()
-
   const {cars, axios, pickupDate, setPickupDate, returnDate, setReturnDate} = useAppContext()
 
   const navigate = useNavigate()
   const [car, setCar] = useState(null)
+  const [paymentLoading, setPaymentLoading] = useState(false)
   const currency = import.meta.env.VITE_CURRENCY
 
   const handleSubmit = async (e)=>{
     e.preventDefault();
+
     try {
-      const {data} = await axios.post('/api/bookings/create', {
+      setPaymentLoading(true)
+
+      const {data} = await axios.post('/api/payments/esewa/initiate', {
         car: id,
-        pickupDate, 
+        pickupDate,
         returnDate
       })
 
-      if (data.success){
-        toast.success(data.message)
-        navigate('/my-bookings')
-      }else{
+      if (!data.success) {
         toast.error(data.message)
+        return
       }
+
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = data.paymentUrl
+      form.style.display = 'none'
+
+      Object.entries(data.fields).forEach(([key, value]) => {
+        const input = document.createElement('input')
+        input.type = 'hidden'
+        input.name = key
+        input.value = value
+        form.appendChild(input)
+      })
+
+      document.body.appendChild(form)
+      form.submit()
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.response?.data?.message || error.message)
+    } finally {
+      setPaymentLoading(false)
     }
   }
 
@@ -49,9 +68,7 @@ const CarDetails = () => {
 
        <div className='grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12'>
 
-          {/* Left: Car Image & Details */}
           <div className='lg:col-span-2'>
-
               <img
               src={car.image}
               alt=""
@@ -59,7 +76,6 @@ const CarDetails = () => {
               />
 
               <div className='space-y-6'>
-
                 <div>
                   <h1 className='text-3xl font-bold'>{car.brand} {car.model}</h1>
                   <p className='text-gray-500 text-lg'>{car.category} • {car.year}</p>
@@ -74,46 +90,33 @@ const CarDetails = () => {
                     {icon: assets.car_icon, text: car.transmission},
                     {icon: assets.location_icon, text: car.location},
                   ].map(({icon, text})=>(
-                    <div
-                    key={text}
-                    className='flex flex-col items-center bg-light p-4 rounded-lg'
-                    >
+                    <div key={text} className='flex flex-col items-center bg-light p-4 rounded-lg'>
                       <img src={icon} alt="" className='h-5 mb-2'/>
                       {text}
                     </div>
                   ))}
                 </div>
 
-                {/* Description */}
                 <div>
                   <h1 className='text-xl font-medium mb-3'>Description</h1>
                   <p className='text-gray-500'>{car.description}</p>
                 </div>
 
-                {/* Features */}
                 <div>
                   <h1 className='text-xl font-medium mb-3'>Features</h1>
                   <ul className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
-                    {
-                      ["360 Camera", "Bluetooth", "GPS", "Heated Seats", "Rear View Mirror"].map((item)=>(
+                    {["360 Camera", "Bluetooth", "GPS", "Heated Seats", "Rear View Mirror"].map((item)=>(
                         <li key={item} className='flex items-center text-gray-500'>
                           <img src={assets.check_icon} className='h-4 mr-2' alt="" />
                           {item}
                         </li>
-                      ))
-                    }
+                    ))}
                   </ul>
                 </div>
-
               </div>
           </div>
 
-          {/* Right: Booking Form */}
-          <form
-          onSubmit={handleSubmit}
-          className='shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500'
-          >
-
+          <form onSubmit={handleSubmit} className='shadow-lg h-max sticky top-18 rounded-xl p-6 space-y-6 text-gray-500'>
             <p className='flex items-center justify-between text-2xl text-gray-800 font-semibold'>
               {currency}{car.pricePerDay}
               <span className='text-base text-gray-400 font-normal'>per day</span>
@@ -143,36 +146,18 @@ const CarDetails = () => {
               className='border border-borderColor px-3 py-2 rounded-lg'
               required
               id='return-date'
+              min={pickupDate || new Date().toISOString().split('T')[0]}
               />
             </div>
 
-            <button className='w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all duration-300 py-3.5 font-semibold text-white rounded-xl cursor-pointer shadow-md hover:shadow-lg'>
-              
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M8 7V3m8 4V3m-9 8h10M5 5h14a2 2 0 012 2v12a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"
-                />
-              </svg>
-
-              Book Now
-
+            <button disabled={paymentLoading} className='w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all duration-300 py-3.5 font-semibold text-white rounded-xl cursor-pointer shadow-md hover:shadow-lg disabled:opacity-60'>
+              {paymentLoading ? 'Preparing Payment...' : 'Book Now with eSewa'}
             </button>
 
-            <p className='text-center text-sm'>No credit card required to reserve</p>
-
+            <p className='text-center text-sm'>You will be redirected to eSewa to complete payment.</p>
           </form>
 
        </div>
-
     </div>
   ) : <Loader />
 }
