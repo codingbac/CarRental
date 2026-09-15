@@ -1,0 +1,21 @@
+$kind: http-request
+name: http://localhost:3000/api/users/register
+description: ""
+url: http://localhost:3000/api/users/register
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \r
+
+    \    \"name\": \"GreatStack\",\r
+
+    \    \"email\": \"test1@gmail.com\",\r
+
+    \    \"password\": \"12345678\"\r
+
+    \r
+
+    }"
+order: 3974220190023337
