@@ -1,32 +1,30 @@
-import React, { useState } from 'react'
+import React from 'react'
 import Navbar from './components/Navbar'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Cars from './pages/Cars'
 import CarDetails from './pages/CarDetails'
 import MyBookings from './pages/MyBookings'
-import Footer from './components/Footer'
 import Layout from './pages/Owner/Layout'
 import Dashboard from './pages/Owner/Dashboard'
 import AddCar from './pages/Owner/AddCar'
 import ManageCars from './pages/Owner/ManageCars'
 import ManageBookings from './pages/Owner/ManageBookings'
+import AIHelp from './pages/Owner/AIHelp'
 import Login from './components/Login'
 import { Toaster } from 'react-hot-toast'
 import { useAppContext } from './context/AppContext'
 
 const App = () => {
-
-const {showLogin} = useAppContext()
-const isOwnerPath =
+  const {showLogin} = useAppContext()
+  const isOwnerPath =
     useLocation().pathname.startsWith('/owner') ||
     useLocation().pathname.startsWith('/Owner')
 
   return (
     <>
-    <Toaster />
+      <Toaster />
       {showLogin && <Login/>}
-
       {!isOwnerPath && <Navbar/>}
 
       <Routes>
@@ -35,17 +33,14 @@ const isOwnerPath =
         <Route path="/car-details/:id" element={<CarDetails />} />
         <Route path="/my-bookings" element={<MyBookings />} />
 
-<Route path="/owner" element={<Layout />}>
-        <Route index element={<Dashboard />}/>
-        <Route path="add-car" element={<AddCar />}/>
-        <Route path="manage-cars" element={<ManageCars />}/>
-        <Route path="manage-bookings" element={<ManageBookings />}/>
-      </Route>
+        <Route path="/owner" element={<Layout />}>
+          <Route index element={<Dashboard />}/>
+          <Route path="add-car" element={<AddCar />}/>
+          <Route path="manage-cars" element={<ManageCars />}/>
+          <Route path="manage-bookings" element={<ManageBookings />}/>
+          <Route path="ai-help" element={<AIHelp />}/>
+        </Route>
       </Routes>
-
-    
-      
-
     </>
   )
 }
