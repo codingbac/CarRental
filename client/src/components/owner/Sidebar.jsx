@@ -55,6 +55,15 @@ const Sidebar = () => {
                 <div className={`${link.path === location.pathname && 'bg-primary'} w-1.5 h-8 rounded-l right-0 absolute`}></div>
             </NavLink>
         ))}
+
+        <NavLink
+          to="/owner/ai-help"
+          className={`relative flex items-center gap-2 w-full py-3 pl-4 ${location.pathname === '/owner/ai-help' ? 'bg-primary/10 text-primary' : 'text-gray-600'}`}
+        >
+          <span className='flex items-center justify-center w-5 h-5 text-xs font-bold border border-current rounded-full'>AI</span>
+          <span className='max-md:hidden'>AI Help</span>
+          <div className={`${location.pathname === '/owner/ai-help' ? 'bg-primary' : ''} w-1.5 h-8 rounded-l right-0 absolute`}></div>
+        </NavLink>
       </div>
     </div>
   )
